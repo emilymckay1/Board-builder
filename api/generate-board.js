@@ -84,7 +84,10 @@ export default async function handler(req, res) {
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
       console.error('Gemini API error:', errText);
-      res.status(502).json({ error: 'Image generation failed. Please try again.' });
+      // Temporarily surface the real upstream error so we can diagnose issues.
+      // Once this is working reliably, swap this back to a generic message
+      // so visitors never see raw API internals.
+      res.status(502).json({ error: 'Image generation failed: ' + errText.slice(0, 300) });
       return;
     }
 
@@ -103,6 +106,6 @@ export default async function handler(req, res) {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Something went wrong generating the board. Please try again.' });
+    res.status(500).json({ error: 'Something went wrong generating the board: ' + (err && err.message ? err.message : 'unknown') });
   }
 }
